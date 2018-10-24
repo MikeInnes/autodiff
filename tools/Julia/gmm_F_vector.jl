@@ -1,7 +1,3 @@
-#Pkg.add("ForwardDiff")
-#Pkg.update()
-#Pkg.checkout("ForwardDiff")
-#Pkg.status()
 using ForwardDiff
 
 include("common.jl")
@@ -116,4 +112,3 @@ name = "Julia_F_vector"
 
 write_J(string(fn_out,"_J_",name,".txt"),J)
 write_times(string(fn_out,"_times_",name,".txt"),tf,tJ)
-

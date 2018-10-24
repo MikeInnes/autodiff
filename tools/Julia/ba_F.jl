@@ -1,7 +1,3 @@
-#Pkg.add("ForwardDiff")
-#Pkg.update()
-#Pkg.checkout("ForwardDiff")
-#Pkg.status()
 using ForwardDiff
 
 N_CAM_PARAMS = 11

@@ -1,8 +1,3 @@
-#Pkg.add("ForwardDiff")
-#Pkg.add("SpecialFunctions")
-#Pkg.update()
-#Pkg.checkout("ForwardDiff")
-#Pkg.status()
 using Printf
 using SpecialFunctions
 using ForwardDiff
@@ -90,4 +85,3 @@ name = "Julia_F"
 
 write_J(string(fn_out,"_J_",name,".txt"),J)
 write_times(string(fn_out,"_times_",name,".txt"),tf,tJ)
-
