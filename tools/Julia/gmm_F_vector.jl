@@ -6,7 +6,7 @@ include("common.jl")
 function logsumexp_AD_mat(X)
   n = size(X,2)
   mX = [maximum(X[:,i]) for i in 1:n]
-  log(sum(exp(X .- mX'),1)) + mX'
+  log(sum(exp(X .- mX'),dims=1)) + mX'
 end
 # input should be 1 dimensional
 function logsumexp_AD_vec(x)
@@ -19,38 +19,38 @@ end
   n = size(x,2)
   CONSTANT = -n*d*0.5*log(2 * pi)
 
-  sum_qs = sum(icf[1:d,:],1)
+  sum_qs = sum(icf[1:d,:],dims=1)
   slse = sum(sum_qs)
   Qs = [get_Q(d,icf[:,ik]) for ik in 1:k]
   main_term = zeros(eltype(alphas),k,n)
 
   for ik=1:k
     Qxcentered = Qs[ik] * (x .- means[:,ik])
-    main_term[ik,:] = alphas[ik] + sum_qs[ik] - 0.5*sumabs2(Qxcentered,1)
+    main_term[ik,:] = alphas[ik] + sum_qs[ik] - 0.5*sum(abs2,Qxcentered,dims=1)
   end
 
   CONSTANT + sum(logsumexp_AD_mat(main_term)) - n*logsumexp_AD_vec(alphas) + log_wishart_prior(wishart, sum_qs, Qs, icf)
 end
 
 function logsumexp(X,axis=2)
-  mX = maximum(X,axis)
-  log(sum(exp(X .- mX),axis)) + mX
+  mX = maximum(X,dims=axis)
+  log.(sum(exp.(X .- mX),dims=axis)) + mX
 end
-typealias Mat Matrix{Float64}
+const Mat = Matrix{Float64}
 
 @inbounds function gmm_objective(alphas::Mat,means::Mat,icf::Mat,x::Mat,wishart::Wishart)
   d = size(x,1)
   n = size(x,2)
   CONSTANT = -n*d*0.5*log(2 * pi)
 
-  sum_qs = sum(icf[1:d,:],1)
+  sum_qs = sum(icf[1:d,:],dims=1)
   slse = sum(sum_qs)
   Qs = [get_Q(d,icf[:,ik]) for ik in 1:k]
   main_term = zeros(eltype(alphas),k,n)
 
   for ik=1:k
     Qxcentered = Qs[ik] * (x .- means[:,ik])
-    main_term[ik,:] = alphas[ik] + sum_qs[ik] - 0.5*sumabs2(Qxcentered,1)
+    main_term[ik,:] = alphas[ik] .+ sum_qs[ik] .- 0.5*sum(abs2,Qxcentered,dims=1)
   end
 
   lse_alphas = n*logsumexp(alphas);
@@ -79,11 +79,10 @@ n = size(x,2)
 # Objective
 precompile(gmm_objective,(typeof(alphas),typeof(means),typeof(icf),typeof(x),Wishart))
 err = 0.
-tic()
-for i in 1:nruns_f
+tf = @elapsed for i in 1:nruns_f
   err = gmm_objective(alphas,means,icf,x,wishart)
 end
-tf = toq()/nruns_f
+tf /= nruns_f
 @printf "tf: %g\n" tf
 #println(err)
 
